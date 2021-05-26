@@ -1,0 +1,195 @@
+version: "3.6"
+services:
+
+  cloud-app:
+    container_name: cloud-app
+    build:
+      context: .
+      target: base
+    ports:
+      - "${CLOUD_APP_PORT}:8080"
+      - "48888:8888"
+    restart: always
+    depends_on:
+      - cloud-mysql
+      - cloud-redis
+      - cloud-srs
+      - cloud-rabbitmq
+    volumes:
+      - "${CLOUD_DATA:-~/cloud}/app/file:/home/file"
+      - "${CLOUD_DATA:-~/cloud}/app/log:/home/log"
+      - "${CLOUD_DATA:-~/cloud}/app/tmp:/home/tmp"
+    links:
+      - cloud-mysql
+      - cloud-redis
+      - cloud-srs
+      - cloud-rabbitmq
+      - edge-app
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://cloud-mysql:3306/hqsms?useUnicode=true&characterEncoding=utf8&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=hqsms
+      - SPRING_RABBITMQ_HOST=cloud-rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=hqsms
+      - SPRING_RABBITMQ_PASSWORD=hqsms
+      - SPRING_REDIS_HOST=cloud-redis
+      - SPRING_REDIS_PORT=6379
+      - SPRINGFOX_DOCUMENTATION_SWAGGER_V2_HOST=${CLOUD_IP}:${CLOUD_APP_PORT}
+      - HQSMS_CLOUD_SERVER_ENABLE=true
+      - HQSMS_CLOUD_SERVER_HOST=${CLOUD_IP}
+      - HQSMS_CLOUD_SERVER_PORT=${CLOUD_APP_PORT}
+      - HQSMS_CLOUD_SRS_API_PORT=${CLOUD_SRS_API_PORT}
+      - HQSMS_CLOUD_SRS_HLS_PORT=${CLOUD_SRS_HLS_PORT}
+      - HQSMS_EDGE_SERVER_ENABLE=false
+      - HQSMS_EDGE_CAMERA_ENABLE=false
+      - HQSMS_EDGE_WEATHER_ENABLE=false
+      - HQSMS_EDGE_BROADCAST_ENABLE=false
+      - HQSMS_EDGE_SCREEN_ENABLE=false
+      - HQSMS_EDGE_WIFI_ENABLE=false
+      - HQSMS_EDGE_ALARM_ENABLE=false
+      - HQSMS_EDGE_CHARGER_ENABLE=false
+      - HQSMS_EDGE_METER_ENABLE=false
+      - LEAF_SEGMENT_URL=jdbc:mysql://cloud-mysql:3306/leaf?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - LEAF_SEGMENT_USERNAME=root
+      - LEAF_SEGMENT_PASSWORD=hqsms
+      - LEAF_JDBC_URL=jdbc:mysql://cloud-mysql:3306/leaf?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - LEAF_JDBC_USERNAME=root
+      - LEAF_JDBC_PASSWORD=hqsms
+    command: ["./wait-for-it.sh", "cloud-rabbitmq:5672", "cloud-redis:6379", "cloud-mysql:3306", "-t", "0", "--", "./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8888'"]
+
+  cloud-redis:
+    container_name: cloud-redis
+    image: redis
+    restart: always
+    volumes:
+      - "${CLOUD_DATA:-~/cloud}/redis/data:/data"
+
+  cloud-mysql:
+    container_name: cloud-mysql
+    image: mysql
+    ports:
+      - "${CLOUD_MYSQL_PORT}:3306"
+    restart: always
+    volumes:
+      - "${CLOUD_DATA:-~/cloud}/mysql/data:/var/lib/mysql"
+      - "${CLOUD_DATA:-~/cloud}/mysql/log:/var/log/mysql"
+      - "./conf/cloud/mysql/init:/docker-entrypoint-initdb.d"
+      - "./conf/cloud/mysql/sql:/opt/sql"
+    environment:
+      - MYSQL_DATABASE=hqsms
+      - MYSQL_USER=hqsms
+      - MYSQL_PASSWORD=hqsms
+      - MYSQL_ROOT_PASSWORD=hqsms
+    command: mysqld --default-authentication-plugin=mysql_native_password --skip-ssl --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  cloud-srs:
+    container_name: cloud-srs
+    image: zomco/srs:hqsms
+    ports:
+      - "${CLOUD_SRS_RTMP_PORT}:1935"
+      - "${CLOUD_SRS_API_PORT}:1985"
+      - "${CLOUD_SRS_RTC_PORT}:8000"
+      - "${CLOUD_SRS_HLS_PORT}:8080"
+      - "${CLOUD_SRS_SIP_PORT}:5060/udp"
+      - "${CLOUD_SRS_RTP_PORT}:9000/udp"
+    restart: always
+    volumes:
+      - "${CLOUD_DATA:-~/cloud}/srs/data:/usr/local/srs/objs/nginx/html/live"
+    environment:
+      - CANDIDATE=${CLOUD_IP}
+
+  cloud-rabbitmq:
+    container_name: cloud-rabbitmq
+    image: rabbitmq:management
+    ports:
+      - "${CLOUD_RABBITMQ_PORT}:5672"
+    restart: always
+    volumes:
+      - "${CLOUD_DATA:-~/cloud}/rabbitmq/data:/var/lib/rabbitmq/"
+      - "${CLOUD_DATA:-~/cloud}/rabbitmq/log:/var/log/rabbitmq/"
+    environment:
+      - RABBITMQ_DEFAULT_USER=hqsms
+      - RABBITMQ_DEFAULT_PASS=hqsms
+
+
+  edge-app:
+    container_name: edge-app
+    build:
+      context: .
+      target: base
+    ports:
+      - "58080:8080"
+      - "58888:8888"
+    restart: always
+    depends_on:
+      - edge-mysql
+      - edge-redis
+      - cloud-srs
+      - cloud-rabbitmq
+    volumes:
+      - "${EDGE_DATA:-~/edge}/app/file:/home/file"
+      - "${EDGE_DATA:-~/edge}/app/log:/home/log"
+      - "${EDGE_DATA:-~/edge}/app/tmp:/home/tmp"
+    links:
+      - edge-mysql
+      - edge-redis
+      - cloud-srs
+      - cloud-rabbitmq
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://edge-mysql:3306/hqsms?useUnicode=true&characterEncoding=utf8&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=hqsms
+      - SPRING_RABBITMQ_HOST=cloud-rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=hqsms
+      - SPRING_RABBITMQ_PASSWORD=hqsms
+      - SPRING_REDIS_HOST=edge-redis
+      - SPRING_REDIS_PORT=6379
+      - HQSMS_CLOUD_SERVER_ENABLE=false
+      - HQSMS_CLOUD_SERVER_HOST=${CLOUD_IP}
+      - HQSMS_CLOUD_SERVER_PORT=${CLOUD_APP_PORT}
+      - HQSMS_CLOUD_SRS_API_PORT=${CLOUD_SRS_API_PORT}
+      - HQSMS_CLOUD_SRS_HLS_PORT=${CLOUD_SRS_HLS_PORT}
+      - HQSMS_EDGE_SERVER_ENABLE=true
+      - HQSMS_EDGE_CAMERA_ENABLE=true
+      - HQSMS_EDGE_WEATHER_ENABLE=false
+      - HQSMS_EDGE_BROADCAST_ENABLE=false
+      - HQSMS_EDGE_SCREEN_ENABLE=false
+      - HQSMS_EDGE_WIFI_ENABLE=false
+      - HQSMS_EDGE_ALARM_ENABLE=false
+      - HQSMS_EDGE_CHARGER_ENABLE=false
+      - HQSMS_EDGE_METER_ENABLE=false
+      - LEAF_SEGMENT_URL=jdbc:mysql://cloud-mysql:3306/leaf?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - LEAF_SEGMENT_USERNAME=root
+      - LEAF_SEGMENT_PASSWORD=hqsms
+      - LEAF_JDBC_URL=jdbc:mysql://cloud-mysql:3306/leaf?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - LEAF_JDBC_USERNAME=root
+      - LEAF_JDBC_PASSWORD=hqsms
+      - LD_LIBRARY_PATH=/home/sdk/linux-x86-64/hikvision;/home/sdk/linux-x86-64/hikvision/HCNetSDKCom;/home/sdk/linux-x86-64/huawei;/home/sdk/linux-x86-64/huawei/lib64
+    command: ["./wait-for-it.sh", "cloud-rabbitmq:5672", "edge-redis:6379", "edge-mysql:3306", "-t", "0", "--", "./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8888'"]
+
+  edge-redis:
+    container_name: edge-redis
+    image: redis
+    restart: always
+    volumes:
+      - "${EDGE_DATA:-~/edge}/redis/data:/data"
+
+  edge-mysql:
+    container_name: edge-mysql
+    image: mysql
+    ports:
+      - "53306:3306"
+    restart: always
+    volumes:
+      - "${EDGE_DATA:-~/edge}/mysql/data:/var/lib/mysql"
+      - "${EDGE_DATA:-~/edge}/mysql/log:/var/log/mysql"
+      - "./conf/edge/mysql/init:/docker-entrypoint-initdb.d"
+      - "./conf/edge/mysql/sql:/opt/sql"
+    environment:
+      - MYSQL_DATABASE=hqsms
+      - MYSQL_USER=hqsms
+      - MYSQL_PASSWORD=hqsms
+      - MYSQL_ROOT_PASSWORD=hqsms
+    command: mysqld --default-authentication-plugin=mysql_native_password --skip-ssl --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

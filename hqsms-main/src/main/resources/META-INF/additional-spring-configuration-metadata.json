@@ -1,0 +1,128 @@
+{
+  "properties": [
+    {
+      "name": "hqsms.cloud.server.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用云端服务器功能，监听消息队列的事件."
+    },
+    {
+      "name": "hqsms.cloud.server.host",
+      "type": "java.lang.String",
+      "description": "云端服务器地址."
+    },
+    {
+      "name": "hqsms.cloud.server.port",
+      "type": "java.lang.String",
+      "description": "云端服务器端口."
+    },
+    {
+      "name": "hqsms.cloud.srs.api.port",
+      "type": "java.lang.String",
+      "description": "云端SRS服务API端口."
+    },
+    {
+      "name": "hqsms.cloud.srs.hls.port",
+      "type": "java.lang.String",
+      "description": "云端SRS服务HLS端口."
+    },
+    {
+      "name": "hqsms.cloud.leaf.tag",
+      "type": "java.lang.String",
+      "description": "分布式ID生成器标签."
+    },
+    {
+      "name": "hqsms.edge.server.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用边缘服务器功能，上报事件到消息队列."
+    },
+    {
+      "name": "hqsms.edge.camera.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用摄像头模块."
+    },
+    {
+      "name": "hqsms.edge.camera.record.duration",
+      "type": "java.lang.Integer",
+      "description": "摄像头模块录像时长，单位分钟."
+    },
+    {
+      "name": "hqsms.edge.camera.record.ttl",
+      "type": "java.lang.Integer",
+      "description": "摄像头模块录像清理时间，单位天."
+    },
+    {
+      "name": "hqsms.edge.camera.record.bypass",
+      "type": "java.lang.Boolean",
+      "description": "是否旁路云服务器获取录像文件."
+    },
+    {
+      "name": "hqsms.edge.weather.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用气象模块."
+    },
+    {
+      "name": "hqsms.edge.broadcast.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用广播模块."
+    },
+    {
+      "name": "hqsms.edge.screen.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用屏幕模块."
+    },
+    {
+      "name": "hqsms.edge.wifi.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用无线网络模块."
+    },
+    {
+      "name": "hqsms.edge.alarm.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用一键报警模块."
+    },
+    {
+      "name": "hqsms.edge.charger.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用充电桩模块."
+    },
+    {
+      "name": "hqsms.edge.meter.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用电能表模块."
+    },
+    {
+      "name": "hqsms.edge.wifi.ac.ruijie.snmp.community",
+      "type": "java.lang.String",
+      "description": "AC设备团体名."
+    },
+    {
+      "name": "hqsms.edge.wifi.ac.ruijie.snmp.get.host",
+      "type": "java.lang.String",
+      "description": "AC设备SNMP GET主机."
+    },
+    {
+      "name": "hqsms.edge.wifi.ac.ruijie.snmp.trap.host",
+      "type": "java.lang.String",
+      "description": "AC设备SNMP TRAP主机."
+    },
+    {
+      "name": "hqsms.edge.wifi.ac.ruijie.snmp.get.port",
+      "type": "java.lang.String",
+      "description": "AC设备SNMP GET端口."
+    },
+    {
+      "name": "hqsms.edge.wifi.ac.ruijie.snmp.trap.port",
+      "type": "java.lang.String",
+      "description": "AC设备SNMP TRAP端口."
+    },
+    {
+      "name": "hqsms.edge.Light.enable",
+      "type": "java.lang.Boolean",
+      "description": "是否启用灯控模块."
+    },
+    {
+      "name": "hqsms.edge.Municipal.enable",
+      "type": "java.lang.Boolean",
+      "description": "Description for hqsms.edge.Municipal.enable."
+    }
+  ] }

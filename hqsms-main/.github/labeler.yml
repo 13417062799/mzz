@@ -1,0 +1,23 @@
+configuration
+  - src/main/resources/*.properties
+
+test
+  - src/test/**/*
+
+source
+  - src/main/java/**/*
+
+docker
+  - conf/**/*
+  - cloud.env
+  - cloud.yml
+  - docker-compose.yml
+  - docker-compose-dev.yml
+  - Dockerfile
+  - edge.env
+  - edge.yml
+  - zomco.env
+
+library
+  - libs/**/*
+  - sdk/**/*
